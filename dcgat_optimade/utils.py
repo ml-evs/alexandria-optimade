@@ -24,10 +24,10 @@ def ingest_and_insert_pymatgen_bz2(data_path: Path):
         database_entry = optimade_doc.entry.dict(exclude_unset=True)
         database_entry["attributes"]["energy"] = computed_entry.energy
         database_entry["attributes"]["xc_functional"] = "PBESol"
-
+        database_entry.update(database_entry.pop("attributes"))
         structures_coll.insert([database_entry])
 
-    print("Successfully ingested {ind+1} structures.")
+    print(f"Successfully ingested {ind+1} structures.")
 
 
 if __name__ == "__main__":
