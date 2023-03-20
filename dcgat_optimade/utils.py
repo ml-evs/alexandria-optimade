@@ -28,8 +28,7 @@ def ingest_and_insert_pymatgen_bz2(data_path: Path):
 
         structures_coll.insert([database_entry])
 
-
-
+    print("Successfully ingested {ind+1} structures.")
 
 
 if __name__ == "__main__":
