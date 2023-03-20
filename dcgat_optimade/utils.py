@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
-
-os.environ["OPTIMADE_CONFIG_FILE"] = str(Path(__file__).parent.parent / "optimade_config.json")
+import tqdm
 
 from optimade.adapters import Structure
 from optimade.server.routers import structures
@@ -17,7 +16,7 @@ def ingest_and_insert_pymatgen_bz2(data_path: Path):
     with bz2.open(data_path) as fh:
       data = json.loads(fh.read().decode('utf-8'))
 
-    for ind, entry in enumerate(data["entries"]):
+    for ind, entry in tqdm.tqdm(enumerate(data["entries"])):
         computed_entry = ComputedStructureEntry.from_dict(entry)
         optimade_doc = Structure.ingest_from(computed_entry.structure)
         optimade_doc.entry.id = str(ind)

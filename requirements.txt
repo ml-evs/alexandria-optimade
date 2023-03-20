@@ -1,1 +1,2 @@
 optimade[pymatgen,server]~=0.22
+tqdm
