@@ -7,7 +7,9 @@ touch logs/odbx_dcgat_error.log
 
 tail -f -n 20 logs/odbx_dcgat_access.log logs/odbx_dcgat_error.log &
 
-python optimade_dcgat_datasets/utils.py
+python /app/dcgat_optimade/utils.py
+
+PYTHONPATH="/app/optimade_dcgat"
 
 gunicorn \
     -w 1 \
@@ -17,4 +19,4 @@ gunicorn \
     --access-logfile logs/odbx_dcgat_access.log \
     --capture-output \
     --access-logformat "%(t)s: %(h)s %(l)s %(u)s %(r)s %(s)s %(b)s %(f)s %(a)s" \
-    -b unix:/tmp/gunicorn_rest_dcgat.sock optimade_dcgat.app:app
+    -b unix:/tmp/gunicorn_rest_dcgat.sock dcgat_optimade.app:app

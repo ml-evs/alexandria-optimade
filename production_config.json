@@ -1,6 +1,7 @@
 {
     "debug": false,
     "mongo_database": "dcgat_optimade",
+    "mongo_uri": "mongodb://%2Ftmp%2Fmongodb-27018.sock",
     "database_backend": "mongodb",
     "insert_test_data": false,
     "base_url": "https://dcgat.odbx.science",
