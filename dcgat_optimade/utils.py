@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import tqdm
+import pymongo
 
 from optimade.adapters import Structure
 from optimade.server.routers import structures
@@ -9,7 +10,12 @@ def ingest_and_insert_pymatgen_bz2(data_path: Path):
     from pymatgen.entries.computed_entries import ComputedStructureEntry
 
     
-    structures_coll = structures.structures_coll
+    structures_coll = structures.structures_coll.collection
+    try:
+        structures_coll.create_index("id", unique=True)
+    except pymongo.errors.OperationFailure:
+        print("Dropping existing malformed collection")
+        structures_coll.drop()
 
     import json, bz2
 
@@ -25,7 +31,10 @@ def ingest_and_insert_pymatgen_bz2(data_path: Path):
         database_entry["attributes"]["energy"] = computed_entry.energy
         database_entry["attributes"]["xc_functional"] = "PBESol"
         database_entry.update(database_entry.pop("attributes"))
-        structures_coll.insert([database_entry])
+        try:
+            structures_coll.update_one({"id": optimade_doc.entry.id}, {"$set": database_entry}, upsert=True)
+        except pymongo.errors.DuplicateKeyError:
+            pass
 
     print(f"Successfully ingested {ind+1} structures.")
 
