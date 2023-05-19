@@ -38,7 +38,9 @@ def ingest_and_insert_pymatgen_bz2(
 
         for ref in attach_references:
             try:
-                references_coll.insert_one(ref.dict(exclude_unset=True))
+                database_entry = ref.dict(exclude_unset=True)
+                database_entry.update(database_entry.pop("attributes"))
+                references_coll.insert_one(database_entry)
             except pymongo.errors.DuplicateKeyError:
                 pass
 
@@ -55,9 +57,12 @@ def ingest_and_insert_pymatgen_bz2(
         optimade_doc.entry.attributes.immutable_id = optimade_doc.entry.id
         if attach_references:
             optimade_doc.entry.relationships = {
-                "references": [
-                    {"type": "references", "id": ref.id} for ref in attach_references
-                ]
+                "references": {
+                    "data": [
+                        {"type": "references", "id": ref.id}
+                        for ref in attach_references
+                    ]
+                }
             }
 
         database_entry = optimade_doc.entry.dict(exclude_unset=True)
