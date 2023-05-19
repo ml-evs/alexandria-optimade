@@ -24,6 +24,7 @@ def ingest_and_insert_pymatgen_bz2(
     except pymongo.errors.OperationFailure:
         print("Dropping existing malformed collection")
         structures_coll.drop()
+        structures_coll.create_index("id", unique=True)
 
     if attach_references:
         references_coll = references.references_coll.collection
@@ -33,6 +34,7 @@ def ingest_and_insert_pymatgen_bz2(
         except pymongo.errors.OperationFailure:
             print("Dropping existing malformed collection")
             references_coll.drop()
+            references_coll.create_index("id", unique=True)
 
         for ref in attach_references:
             try:
