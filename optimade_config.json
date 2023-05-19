@@ -2,6 +2,7 @@
     "debug": false,
     "mongo_database": "dcgat_optimade",
     "database_backend": "mongodb",
+    "insert_test_data": false,
     "base_url": "http://localhost:5000",
     "implementation": {
         "name": "OPTIMADE Python tools",
@@ -10,16 +11,21 @@
         "maintainer": {"email": "dev@optimade.org"}
     },
     "provider": {
-        "name": "DCGAT",
-        "description": "",
-        "prefix": "dcgat",
+        "name": "Alexandria",
+        "description": "A collection of databases from the group of Prof Miguel A. L. Marques at Ruhr University Bochum.",
+        "prefix": "alexandria",
         "homepage": "https://tddft.org/bmg"
     },
-    "index_base_url": null,
     "provider_fields": {
         "structures": [
-            "xc_functional",
-            "energy",
+            {"name": "xc_functional", "type": "string", "description": "The exchange-correlation functional used for the calculation."},
+            {"name": "energy", "type": "float", "description": "The computed total energy of the structure.", "unit": "eV"},
+            {"name": "hull_distance", "type": "float", "description": "The distance that this structure lies from the global convex hull spanned by all other structures.", "unit": "eV/atom",},
+            {"name": "formation_energy_per_atom", "type": "float", "description": "The formation energy of the structure, computed versus the elemental chemical potentials.", "unit": "eV/atom",},
+            {"name": "band_gap", "type": "float", "description": "The computed band gap of the structure.", "unit": "eV",},
+            {"name": "band_gap_direct", "type": "float", "description": "The computed direct band gap of the structure.", "unit": "eV",},
+            {"name": "band_gap_indirect", "type": "float", "description": "The computed indirect band gap of the structure.", "unit": "eV",},
+            {"name": "prototype_id", "type": "string", "description": "The prototype ID used to create the structure.",},
         ]
     },
 }
