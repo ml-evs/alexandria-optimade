@@ -12,6 +12,51 @@ from optimade.server.routers import references, structures
 
 ARCHIVE_TIMESTAMP = "2023-05-01T07:57:59.147136+00:00"
 
+def add_pbesol_fields(data_path: Path):
+    from pymatgen.entries.computed_entries import ComputedStructureEntry
+
+    structures_coll = structures.structures_coll.collection
+    try:
+        structures_coll.create_index("id", unique=True)
+    except pymongo.errors.OperationFailure:
+        print("Dropping existing malformed collection")
+        structures_coll.drop()
+        structures_coll.create_index("id", unique=True)
+    with bz2.open(data_path) as fh:
+        data = json.loads(fh.read().decode("utf-8"))
+
+    for ind, entry in tqdm.tqdm(enumerate(data["entries"]), total=len(data["entries"])):
+        computed_entry = ComputedStructureEntry.from_dict(entry)
+        optimade_doc = Structure.ingest_from(computed_entry.structure)
+        optimade_doc.entry.id = computed_entry.data["mat_id"]
+        optimade_doc.entry.attributes.last_modified = datetime.datetime.fromisoformat(
+            ARCHIVE_TIMESTAMP
+        )
+        optimade_doc.entry.attributes.immutable_id = optimade_doc.entry.id
+        database_entry["attributes"]["energy_pbesol"] = computed_entry.energy
+        database_entry["attributes"]["hull_distance_pbesol"] = computed_entry.data[
+            "e_above_hull"
+        ]
+        database_entry["attributes"]["formation_energy_per_atom_pbesol"] = computed_entry.data[
+            "e_form"
+        ]
+        database_entry["attributes"]["band_gap_pbesol"] = min(
+            computed_entry.data["band_gap_ind"], computed_entry.data["band_gap_dir"]
+        )
+        database_entry["attributes"]["band_gap_direct_pbesol"] = computed_entry.data[
+            "band_gap_dir"
+        ]
+        database_entry["attributes"]["band_gap_indirect_pbesol"] = computed_entry.data[
+            "band_gap_ind"
+        ]
+        database_entry.update(database_entry.pop("attributes"))
+        try:
+            structures_coll.update_one(
+                {"id": optimade_doc.entry.id}, {"$set": database_entry}
+            )
+        except pymongo.errors.DuplicateKeyError:
+            pass
+
 
 def ingest_and_insert_pymatgen_bz2(
     data_path: Path, attach_references: Optional[List[ReferenceResource]] = None
@@ -83,6 +128,21 @@ def ingest_and_insert_pymatgen_bz2(
         database_entry["attributes"]["band_gap_indirect"] = computed_entry.data[
             "band_gap_ind"
         ]
+        database_entry["attributes"]["hull_distance_scan"] = computed_entry.data[
+            "e_above_hull"
+        ]
+        database_entry["attributes"]["formation_energy_per_atom_scan"] = computed_entry.data[
+            "e_form"
+        ]
+        database_entry["attributes"]["band_gap_scan"] = min(
+            computed_entry.data["band_gap_ind"], computed_entry.data["band_gap_dir"]
+        )
+        database_entry["attributes"]["band_gap_direct_scan"] = computed_entry.data[
+            "band_gap_dir"
+        ]
+        database_entry["attributes"]["band_gap_indirect_scan"] = computed_entry.data[
+            "band_gap_ind"
+        ]
         database_entry["attributes"]["prototype_id"] = computed_entry.data[
             "prototype_id"
         ]
@@ -112,4 +172,11 @@ if __name__ == "__main__":
         ingest_and_insert_pymatgen_bz2(
             archive_path,
             attach_references=[ref],
+        )
+
+    for archive_path in tqdm.tqdm(
+        (Path(__file__).parent.parent / "data").glob("alexandria_ps_*.json.bz2")
+    ):
+        add_pbesol_fields(
+            archive_path,
         )
