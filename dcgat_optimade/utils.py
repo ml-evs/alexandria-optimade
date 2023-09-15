@@ -128,6 +128,7 @@ def ingest_and_insert_pymatgen_bz2(
         database_entry["attributes"]["band_gap_indirect"] = computed_entry.data[
             "band_gap_ind"
         ]
+        database_entry["attributes"]["energy_scan"] = computed_entry.energy
         database_entry["attributes"]["hull_distance_scan"] = computed_entry.data[
             "e_above_hull"
         ]
